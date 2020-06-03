@@ -1,0 +1,109 @@
+%Creator: Jonathan Kenney
+%Lab 1: Interpolation
+clear; clc; close all;
+
+data_raw = xlsread('tire_lab.xlsx');
+
+r1 = -10;
+r2 = 10;
+N = 20;
+tire_temps = floor(linspace(r1,r2,N));
+data = zeros(N, 3);
+for k = 1:N
+    p = find(data_raw(:,1) == tire_temps(k));
+    data(k,:) = data_raw(p,:);
+end
+
+AA_Tire_Degrees = data(:,1);
+Deflection = data(:,2);
+T1 = table(AA_Tire_Degrees, Deflection);
+disp(T1);
+
+interp_points = [-9.7, -6.7, .2, 4.3, 9.5];
+
+nearest_estimate = interp1(data(:,1),data(:,2),interp_points, 'nearest');
+linear_estimate = interp1(data(:,1),data(:,2), interp_points, 'linear');
+spline_estimate = interp1(data(:,1),data(:,2), interp_points, 'spline');
+actual = zeros(1,length(interp_points));
+
+for k = 1:length(interp_points)
+   p = find(data_raw(:,1) == interp_points(k));
+   actual(k) = data_raw(p,2);
+end
+
+per_error_nearest = zeros(1,length(interp_points));
+per_error_linear = zeros(1,length(interp_points));
+per_error_spline = zeros(1,length(interp_points));
+abs_error_nearest = zeros(1,length(interp_points));
+abs_error_linear = zeros(1,length(interp_points));
+abs_error_spline = zeros(1,length(interp_points));
+
+for k = 1:length(interp_points)
+    per_error_nearest(k) = abs(nearest_estimate(k) - actual(k))/actual(k)*100;
+    abs_error_nearest(k) = abs(nearest_estimate(k) - actual(k));
+end
+for k = 1:length(interp_points)
+    per_error_linear(k) = abs(linear_estimate(k) - actual(k))/actual(k)*100;
+    abs_error_linear(k) = abs(linear_estimate(k) - actual(k));
+end
+for k = 1:length(interp_points)
+    per_error_spline(k) = abs(spline_estimate(k) - actual(k))/actual(k)*100;
+    abs_error_spline(k) = abs(spline_estimate(k) - actual(k));
+end
+
+interp_points = interp_points';
+nearest_estimate = nearest_estimate';
+linear_estimate = linear_estimate';
+spline_estimate = spline_estimate';
+actual = actual';
+per_error_nearest = per_error_nearest';
+per_error_linear = per_error_linear';
+per_error_spline = per_error_spline';
+abs_error_nearest = abs_error_nearest';
+abs_error_linear = abs_error_linear';
+abs_error_spline = abs_error_spline';
+
+T2 = table(interp_points, nearest_estimate, linear_estimate, spline_estimate, actual,...
+        per_error_nearest, per_error_linear, per_error_spline,...
+        abs_error_nearest, abs_error_linear, abs_error_spline);
+disp(T2);
+
+interp_points = interp_points';
+nearest_estimate = nearest_estimate';
+linear_estimate = linear_estimate';
+spline_estimate = spline_estimate';
+actual = actual';
+abs_error_nearest = abs_error_nearest';
+abs_error_linear = abs_error_linear';
+abs_error_spline = abs_error_spline';
+
+mean_error_nearest = [sum(abs_error_nearest)/length(abs_error_nearest) sum(abs_error_nearest.^2)/length(abs_error_nearest)]';
+mean_error_linear = [sum(abs_error_linear)/length(abs_error_linear) sum(abs_error_linear.^2)/length(abs_error_linear)]';
+mean_error_spline = [sum(abs_error_spline)/length(abs_error_spline) sum(abs_error_spline.^2)/length(abs_error_spline)]';
+T3RowNames = {'Abs Error Mean'; 'Error Squared Mean'};
+
+T3 = table(mean_error_nearest, mean_error_linear, mean_error_spline, 'RowNames', T3RowNames);  
+disp(T3);
+
+mean_error_nearest = mean_error_nearest';
+mean_error_linear = mean_error_linear';
+mean_error_spline = mean_error_spline';
+
+figure(1)
+plot(AA_Tire_Degrees,Deflection,'rx',interp_points,nearest_estimate,'b*',...
+    interp_points,linear_estimate,'k*',interp_points,spline_estimate,'y*',...
+    data_raw(:,1),data_raw(:,2));
+legend('Selected Deflections','Nearest Estimate','Linear Estimate','Spline Estimate','Raw Data');
+xlabel('Tire Degrees');
+ylabel('Deflection');
+
+actual_celsius = data(:,3)';
+calc_celsius = zeros(1,N);
+for k = 1:N
+   calc_celsius(k) = 4*data(k,1) + 170;
+end
+figure(2)
+plot(data(:,1),actual_celsius,'ko',data(:,1),calc_celsius,'bo');
+legend('Repot\rt\
+xlabel('AA Tire Degrees');
+ylabel('Degrees Celsius');
